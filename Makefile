@@ -55,7 +55,7 @@ BSP_OBJS=$(addprefix build/bsp/,$(BSP_SRCS:.c=.o))
 # Recipes
 
 .PHONY: all
-all: lmeter.bin
+all: build/lmeter.bin
 
 .PHONY: clean
 clean:
@@ -91,8 +91,8 @@ build/hal/%.o: $(HAL)/Src/%.c build/hal
 build/bsp/%.o: $(BSP)/STM32L476G-Discovery/%.c build/bsp
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
-lmeter.elf: $(OBJS) $(HAL_OBJS) $(BSP_OBJS) $(STARTUP_O) $(SYSTEM_O)
+build/lmeter.elf: $(OBJS) $(HAL_OBJS) $(BSP_OBJS) $(STARTUP_O) $(SYSTEM_O)
 	$(CC) -o $@ $(CFLAGS) $^
 
-lmeter.bin: lmeter.elf
+build/lmeter.bin: build/lmeter.elf
 	$(OBJCOPY) -O binary $< $@
