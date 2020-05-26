@@ -1,24 +1,30 @@
 # Tools
 PREFIX = arm-none-eabi
-CC = ${PREFIX}-gcc
-AS = ${PREFIX}-as
-OBJCOPY = ${PREFIX}-objcopy
-GDB = ${PREFIX}-gdb
+CC = $(PREFIX)-gcc
+AS = $(PREFIX)-as
+OBJCOPY = $(PREFIX)-objcopy
+GDB = $(PREFIX)-gdb
 
 # Directories
 CUBE = STM32CubeL4
-HAL = ${CUBE}/Drivers/STM32L4xx_HAL_Driver
-CMSIS = ${CUBE}/Drivers/CMSIS
+HAL = $(CUBE)/Drivers/STM32L4xx_HAL_Driver
+CMSIS = $(CUBE)/Drivers/CMSIS
 CMSIS_DEV=$(CMSIS)/Device/ST/STM32L4xx
-BSP = ${CUBE}/Drivers/BSP
+BSP = $(CUBE)/Drivers/BSP
+
+# Include path
+INC =  -I$(HAL)/Inc
+INC += -I$(CMSIS)/Include
+INC += -I$(CMSIS_DEV)/Include
+INC += -Ihal
 
 # Flags
 CFLAGS  = -std=c17 -Wall -Wextra -Werror -g
 CFLAGS += -mcpu=cortex-m4 -mthumb -mlittle-endian -DSTM32L476xx
-CFLAGS += -T ${LINKER_SCRIPT} --specs=nosys.specs
+CFLAGS += -T $(LINKER_SCRIPT) --specs=nosys.specs
 
 # CFLAGS for just our sources
-EXTRA_CFLAGS = -pendantic
+EXTRA_CFLAGS = -pedantic
 
 # Startup Files
 STARTUP_S = $(CMSIS_DEV)/Source/Templates/gcc/startup_stm32l476xx.s
@@ -29,9 +35,18 @@ LINKER_SCRIPT = src/STM32L476VGTx_FLASH.ld
 
 # Our files
 SRCS = $(wildcard src/*.c)
-OBJS = $(addprefix build/src/,$(SRCS:.c=.o))
+OBJS = $(addprefix build/,$(SRCS:.c=.o))
 
-HAL_SRCS=
+HAL_SRCS = stm32l4xx_hal.c \
+           stm32l4xx_hal_usart.c \
+           stm32l4xx_hal_gpio.c \
+           stm32l4xx_hal_dma.c \
+           stm32l4xx_hal_cortex.c \
+           stm32l4xx_hal_rcc.c \
+           stm32l4xx_hal_rcc_ex.c \
+           stm32l4xx_hal_pwr.c \
+           stm32l4xx_hal_pwr_ex.c
+
 HAL_OBJS=$(addprefix build/hal/,$(HAL_SRCS:.c=.o))
 
 BSP_SRCS=
@@ -76,8 +91,8 @@ build/hal/%.o: $(HAL)/Src/%.c build/hal
 build/bsp/%.o: $(BSP)/STM32L476G-Discovery/%.c build/bsp
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
-lmeter.elf: $(OBJS) $(HAL_OBJS) $(BSP_OBJS) $(STARTUP_O)
-	$(CC) -o $@ $(CFLAGS) $<
+lmeter.elf: $(OBJS) $(HAL_OBJS) $(BSP_OBJS) $(STARTUP_O) $(SYSTEM_O)
+	$(CC) -o $@ $(CFLAGS) $^
 
 lmeter.bin: lmeter.elf
 	$(OBJCOPY) -O binary $< $@
