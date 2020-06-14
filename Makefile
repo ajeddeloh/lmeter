@@ -1,3 +1,5 @@
+NAME=lmeter
+
 # Tools
 PREFIX = arm-none-eabi
 CC = $(PREFIX)-gcc
@@ -19,7 +21,7 @@ INC += -I$(CMSIS_DEV)/Include
 INC += -Ihal
 
 # Flags
-CFLAGS  = -std=c17 -Wall -Wextra -Werror -g
+CFLAGS  = -std=c17 -Wall -Wextra -g
 CFLAGS += -mcpu=cortex-m4 -mthumb -mlittle-endian -DSTM32L476xx
 CFLAGS += -T $(LINKER_SCRIPT) --specs=nosys.specs
 
@@ -27,7 +29,7 @@ CFLAGS += -T $(LINKER_SCRIPT) --specs=nosys.specs
 EXTRA_CFLAGS = -pedantic
 
 # Startup Files
-STARTUP_S = $(CMSIS_DEV)/Source/Templates/gcc/startup_stm32l476xx.s
+STARTUP_S = src/startup_stm32l476xx.s
 SYSTEM_C = $(CMSIS_DEV)/Source/Templates/system_stm32l4xx.c
 STARTUP_O = build/startup/$(notdir $(STARTUP_S:.s=.o))
 SYSTEM_O = build/startup/$(notdir $(SYSTEM_C:.c=.o))
@@ -55,7 +57,7 @@ BSP_OBJS=$(addprefix build/bsp/,$(BSP_SRCS:.c=.o))
 # Recipes
 
 .PHONY: all
-all: build/lmeter.bin
+all: build/$(NAME).bin
 
 .PHONY: clean
 clean:
@@ -76,23 +78,31 @@ build/bsp:
 build/startup:
 	mkdir -p build/startup
 
-build/src/%.o: src/%.c build/src
+build/src/%.o: src/%.c #build/src
 	$(CC) -c $(INC) $(CFLAGS) $(EXTRA_CFLAGS) $< -o $@
 
-$(STARTUP_O): $(STARTUP_S) build/startup
+$(STARTUP_O): $(STARTUP_S) #build/startup
 	$(AS) -c $(INC) $< -o $@
 
-$(SYSTEM_O): $(SYSTEM_C) build/startup
+$(SYSTEM_O): $(SYSTEM_C) #build/startup
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
-build/hal/%.o: $(HAL)/Src/%.c build/hal
+build/hal/%.o: $(HAL)/Src/%.c #build/hal
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
-build/bsp/%.o: $(BSP)/STM32L476G-Discovery/%.c build/bsp
+build/bsp/%.o: $(BSP)/STM32L476G-Discovery/%.c #build/bsp
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
-build/lmeter.elf: $(OBJS) $(HAL_OBJS) $(BSP_OBJS) $(STARTUP_O) $(SYSTEM_O)
+build/$(NAME).elf: $(OBJS) $(HAL_OBJS) $(BSP_OBJS) $(STARTUP_O) $(SYSTEM_O)
 	$(CC) -o $@ $(CFLAGS) $^
 
-build/lmeter.bin: build/lmeter.elf
+build/$(NAME).bin: build/$(NAME).elf
 	$(OBJCOPY) -O binary $< $@
+
+.PHONY: gdb
+gdb: build/$(NAME).elf
+	$(GDB) -ex 'target ext :3333' build/$(NAME).elf
+
+.PHONY: flash
+flash: build/$(NAME).elf
+	$(GDB) -ex 'target ext :3333' -ex 'monitor program build/$(NAME).elf' build/$(NAME).elf
