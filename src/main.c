@@ -1,15 +1,17 @@
 #include "stm32l4xx_hal.h"
 
 #include "uart.h"
+#include "clock.h"
 
 static void init_gpio();
 
 int main(void) {
 	USART_HandleTypeDef usart_handle = {0};
 	HAL_Init();
+	init_clock();
 	init_gpio();
 	init_usart(&usart_handle);
-	
+
 	while(1) {
 		HAL_Delay(1000);
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
