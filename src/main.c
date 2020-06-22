@@ -1,6 +1,7 @@
 #include "stm32l4xx_hal.h"
 
 #include "uart.h"
+#include "adc.h"
 #include "clock.h"
 
 static void init_gpio();
@@ -10,7 +11,9 @@ int main(void) {
 	HAL_Init();
 	init_clock();
 	init_gpio();
+	init_adc();
 	init_usart(&usart_handle);
+	do_capture();
 
 	while(1) {
 		HAL_Delay(1000);
