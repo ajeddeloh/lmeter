@@ -3,6 +3,7 @@
 #include "uart.h"
 #include "adc.h"
 #include "clock.h"
+#include "dac.h"
 
 static void init_gpio();
 
@@ -14,6 +15,7 @@ int main(void) {
 	init_adc();
 	init_usart(&usart_handle);
 	do_capture();
+	init_dac();
 
 	while(1) {
 		HAL_Delay(1000);
