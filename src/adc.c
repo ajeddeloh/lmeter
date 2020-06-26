@@ -12,7 +12,7 @@ void init_adc() {
 	// Init the clocks for ADC, GPIOA, DMA1
 	RCC->AHB2ENR |= RCC_AHB2ENR_ADCEN | RCC_AHB2ENR_GPIOAEN;
 	RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
-	ADC123_COMMON->CCR |= ADC_CCR_CKMODE | ADC_CCR_MDMA_1 | ADC_CCR_DUAL_0;
+	ADC123_COMMON->CCR |= ADC_CCR_CKMODE_0 | ADC_CCR_MDMA_1 | ADC_CCR_DUAL_0;
 	
 	// Init the GPIO (PA0-PA3)
 	// Should be in analog mode after reset already
@@ -35,8 +35,8 @@ void init_adc() {
 	// wait setup time
 	HAL_Delay(ADC_SETUP_TIME_MS);
 
-	ADC1->SMPR1 = 1; // 6.5cycles for channel 1
-	ADC2->SMPR1 = 1; // 6.5cycles for channel 1
+	ADC1->SMPR1 |= ADC_SMPR1_SMP5_0;
+	ADC2->SMPR1 |= ADC_SMPR1_SMP7_0;
 	ADC1->SQR1 = (CHAN1 << ADC_SQR1_SQ1_Pos);
 	ADC2->SQR1 = (CHAN2 << ADC_SQR1_SQ1_Pos);
 	ADC1->DIFSEL = 1 << CHAN1;
