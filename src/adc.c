@@ -2,7 +2,7 @@
 
 #include "adc.h"
 
-static uint16_t data[ADC_BUF_LEN*2];
+static int16_t data[ADC_BUF_LEN*2];
 
 void init_adc() {
 	// Enable Interrupts
@@ -60,10 +60,15 @@ void init_adc() {
 	ADC1->CFGR |= ADC_CFGR_CONT;
 }
 
-void do_capture() {
+int16_t *do_capture() {
+	// flip the DMA on and off again so we can reload the counter
+	DMA1_Channel1->CCR &= ~DMA_CCR_EN;
+	DMA1_Channel1->CNDTR = ADC_BUF_LEN;
+	DMA1_Channel1->CCR |= DMA_CCR_EN;
 	ADC1->CR |= ADC_CR_ADSTART;
 	while(DMA1_Channel1->CNDTR != 0);
 	ADC1->CR |= ADC_CR_ADSTP;
+	return data;
 }
 
 void ADC1_2_IRQHandler() {}

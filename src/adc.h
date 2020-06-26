@@ -16,4 +16,4 @@
 
 void init_adc();
 
-void do_capture();
+int16_t *do_capture();
