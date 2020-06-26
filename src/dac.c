@@ -1,27 +1,9 @@
 #include "stm32l4xx_hal.h"
 
+#include "sine.h"
 #include "dac.h"
 
-static const uint16_t sine[] = {
-#include "sine.h"
-};
-
-#define sine_size (sizeof(sine)/sizeof(sine[0]))
-static uint16_t sine_2x[sine_size/2];
-static uint16_t sine_4x[sine_size/4];
-static uint16_t sine_8x[sine_size/8];
-
-static inline void fill_half(uint16_t *base, uint16_t *base_2x, int base_size) {
-	for (int i = 0; i < base_size; i+=2) {
-		base_2x[i/2] = base[i];
-	}
-}
-
 void init_dac() {
-	fill_half(sine, sine_2x, sine_size);
-	fill_half(sine_2x, sine_4x, sine_size/2);
-	fill_half(sine_4x, sine_8x, sine_size/4);
-
 	NVIC_EnableIRQ(DMA2_Channel5_IRQn);
 
 	// Init the clocks for DAC, GPIOx, DMA2, TIM6
@@ -33,9 +15,9 @@ void init_dac() {
 
 	// Init the DMA
 	// ADC1, Chan 1 defaults to ADC1
-	DMA2_Channel5->CNDTR = sine_size/8;
+	DMA2_Channel5->CNDTR = n_sine;
 	DMA2_Channel5->CPAR = (uint32_t)&DAC1->DHR12R2;
-	DMA2_Channel5->CMAR = (uint32_t)sine_8x;
+	DMA2_Channel5->CMAR = (uint32_t)sine;
 	DMA2_CSELR->CSELR = 3 << DMA_CSELR_C5S_Pos;
 	DMA2_Channel5->CCR |= DMA_CCR_PL_0 | DMA_CCR_PL_1 | DMA_CCR_MSIZE_0
 		| DMA_CCR_PSIZE_0 | DMA_CCR_MINC | DMA_CCR_EN | DMA_CCR_TEIE
