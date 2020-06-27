@@ -10,6 +10,8 @@
 #include <string.h>
 #include <complex.h>
 
+#define M_PI 3.14159265358979323846264338327
+
 static void init_gpio();
 static float get_inductance(int16_t *data, size_t len);
 
@@ -53,7 +55,8 @@ float get_inductance(int16_t *data, size_t len) {
 	float complex inductor = i_real + I * i_imag;
 	float complex total = t_real + I * t_imag;
 	float complex impedance = (inductor/total)*1000/(1-inductor/total);
-	return cimag(impedance);
+	float f = 80e6/(19*n_sine);
+	return cimag(impedance)/(2.0*M_PI*f);
 }
 
 void init_gpio() {
