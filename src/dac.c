@@ -15,9 +15,9 @@ void init_dac() {
 
 	// Init the DMA
 	// ADC1, Chan 1 defaults to ADC1
-	DMA2_Channel5->CNDTR = n_sine;
+	DMA2_Channel5->CNDTR = 512;
+	DMA2_Channel5->CMAR = (uint32_t)sine512;
 	DMA2_Channel5->CPAR = (uint32_t)&DAC1->DHR12R2;
-	DMA2_Channel5->CMAR = (uint32_t)sine;
 	DMA2_CSELR->CSELR = 3 << DMA_CSELR_C5S_Pos;
 	DMA2_Channel5->CCR |= DMA_CCR_PL_0 | DMA_CCR_PL_1 | DMA_CCR_MSIZE_0
 		| DMA_CCR_PSIZE_0 | DMA_CCR_MINC | DMA_CCR_EN | DMA_CCR_TEIE
@@ -27,7 +27,7 @@ void init_dac() {
 	DAC->CR |= DAC_CR_EN2 | DAC_CR_TEN2 | DAC_CR_DMAEN2;
 
 	// Init and start the timer
-	TIM6->ARR = 18; // update every ADC cycle
+	TIM6->ARR = 14; // update four times every ADC cycle
 	TIM6->CR2 |= TIM_CR2_MMS_1;
 	TIM6->CR1 |= TIM_CR1_CEN;
 }

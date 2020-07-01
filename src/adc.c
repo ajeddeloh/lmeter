@@ -35,8 +35,8 @@ void init_adc() {
 	// wait setup time
 	HAL_Delay(ADC_SETUP_TIME_MS);
 
-	ADC1->SMPR1 |= ADC_SMPR1_SMP5_0;
-	ADC2->SMPR1 |= ADC_SMPR1_SMP7_0;
+	ADC1->SMPR1 |= ADC_SMPR1_SMP5_2; // 47.5 cycles sampling + 12.5 conv = 60
+	ADC2->SMPR1 |= ADC_SMPR1_SMP7_2; // 80e6/60 = 1.3333 Msps
 	ADC1->SQR1 = (CHAN1 << ADC_SQR1_SQ1_Pos);
 	ADC2->SQR1 = (CHAN2 << ADC_SQR1_SQ1_Pos);
 	ADC1->DIFSEL = 1 << CHAN1;

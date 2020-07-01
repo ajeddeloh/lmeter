@@ -13,7 +13,7 @@
 #define M_PI 3.14159265358979323846264338327
 
 static void init_gpio();
-static float get_inductance(int16_t *data, size_t len);
+static float complex get_inductance(int16_t *data, size_t len, const int16_t *sine, size_t sine_len);
 
 int main(void) {
 	USART_HandleTypeDef usart_handle = {0};
@@ -25,11 +25,13 @@ int main(void) {
 	init_dac();
 
 	while(1) {
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
 		int16_t *data = do_capture();
-		float z;
-		z = get_inductance(data, ADC_BUF_LEN);
-		char buf[20];
-		sprintf(buf, "%f\n", z);
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
+		float complex z;
+		z = get_inductance(data, ADC_BUF_LEN, sine512, 512);
+		char buf[128];
+		sprintf(buf, "%f %f\n", creal(z), cimag(z));
 		HAL_Delay(1000);
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_2);
 		HAL_USART_Transmit(&usart_handle, (uint8_t*)buf,
@@ -37,7 +39,7 @@ int main(void) {
 	}
 }
 
-float get_inductance(int16_t *data, size_t len) {
+float complex get_inductance(int16_t *data, size_t len, const int16_t *sine, size_t sine_len) {
 	int64_t i_real = 0;
 	int64_t i_imag = 0;
 	int64_t t_real = 0;
@@ -45,8 +47,8 @@ float get_inductance(int16_t *data, size_t len) {
 	for (size_t i = 0; i < len; i+=2) {
 		int64_t tot = data[i];
 		int64_t ind = data[i + 1];
-		int64_t sin = sine[(i/2) % n_sine] - 2048;
-		int64_t cos = sine[(i/2 + 3*n_sine/4) % n_sine] - 2048;
+		int64_t sin = sine[(i*2) % sine_len] - 2048;
+		int64_t cos = sine[(i*2 + sine_len/4) % sine_len] - 2048;
 		i_real += ind*cos;
 		i_imag -= ind*sin;
 		t_real += tot*cos;
@@ -54,16 +56,16 @@ float get_inductance(int16_t *data, size_t len) {
 	}
 	float complex inductor = i_real + I * i_imag;
 	float complex total = t_real + I * t_imag;
-	float complex impedance = (inductor/total)*1000/(1-inductor/total);
-	float f = 80e6/(19*n_sine);
-	return cimag(impedance)/(2.0*M_PI*f);
+	float complex impedance = (inductor/total)*1000/(1-(inductor/total));
+	float w = 2.0*M_PI*80e6/(15*sine_len);
+	return cimag(impedance/(w)) + I*creal(impedance);
 }
 
 void init_gpio() {
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitTypeDef config = {
 		.Mode = GPIO_MODE_OUTPUT_PP,
-		.Pin = GPIO_PIN_2,
+		.Pin = GPIO_PIN_2 | GPIO_PIN_6,
 		.Speed = GPIO_SPEED_FREQ_LOW,
 		.Pull = GPIO_NOPULL,
 	};
