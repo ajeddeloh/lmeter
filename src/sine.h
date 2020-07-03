@@ -1,10 +1,12 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdlib.h>
 
-extern const int16_t sine512[512];
-extern const int16_t sine256[256];
-extern const int16_t sine128[128];
-extern const int16_t sine64[64];
+typedef struct Sine {
+	const int16_t *data;
+	size_t len;
+} Sine;
 
-#define n_sine (sizeof(sine)/sizeof(sine[0]))
+extern const Sine SINES[4];
+extern const size_t N_SINES;

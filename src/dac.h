@@ -1,5 +1,8 @@
 #pragma once
 
-#define DAC_BUF_LEN 2
+#include "sine.h"
 
-void init_dac();
+#define DAC_BUF_LEN 2
+#define DAC_CYCLES_PER_UPDATE 15
+
+void init_dac(const Sine *sine);
