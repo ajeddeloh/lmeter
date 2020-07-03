@@ -8,5 +8,5 @@ typedef struct Sine {
 	size_t len;
 } Sine;
 
-extern const Sine SINES[4];
+extern const Sine SINES[5];
 extern const size_t N_SINES;

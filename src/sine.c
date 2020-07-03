@@ -1,18 +1,21 @@
 #include "sine.h"
 
 const int16_t sine512[] = {
-#include "sine512.h"
+#include "sine_data/sine512.h"
 };
 
+const int16_t sine448[] = {
+#include "sine_data/sine448.h"
+};
+
+const int16_t sine384[] = {
+#include "sine_data/sine384.h"
+};
+const int16_t sine320[] = {
+#include "sine_data/sine320.h"
+};
 const int16_t sine256[] = {
-#include "sine256.h"
-};
-
-const int16_t sine128[] = {
-#include "sine128.h"
-};
-const int16_t sine64[] = {
-#include "sine64.h"
+#include "sine_data/sine256.h"
 };
 
 const Sine SINES[] = {
@@ -21,16 +24,20 @@ const Sine SINES[] = {
 		.len = 512,
 	},
 	{
+		.data = sine448,
+		.len = 448,
+	},
+	{
+		.data = sine384,
+		.len = 384,
+	},
+	{
+		.data = sine320,
+		.len = 320,
+	},
+	{
 		.data = sine256,
 		.len = 256,
-	},
-	{
-		.data = sine128,
-		.len = 128,
-	},
-	{
-		.data = sine64,
-		.len = 64,
 	},
 };
 

@@ -8,9 +8,9 @@ amp = 1024;
 # change to 128 if switching to 8 bit mode
 offset = 2048
 
-n_samples = [512, 256, 128, 64]; # 10.5, 21, 42, and 84 kHz, about
+n_samples = [512, 448, 384, 320, 256]; # 10.5 to 21kHz
 
-filename = "src/sine%d.h"
+filename = "src/sine_data/sine%d.h"
 for sample_length in n_samples:
     with open(filename % sample_length, 'w') as f:
         data = [str(round(offset+(amp)*sin(2*pi*x/sample_length))) for x in range(sample_length)]
