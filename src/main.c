@@ -11,9 +11,12 @@
 #include <complex.h>
 
 #define M_PI 3.14159265358979323846264338327
+#define RESISTOR_VALUE 1000.0
 
 static void init_gpio();
-static float complex get_inductance(int16_t *data, size_t len, const Sine *sine);
+static float complex get_impedance(int16_t *data, size_t len, const Sine *sine);
+void linear_regression(size_t n, const float *xs, const float complex *ys, float complex *res_m,
+		float complex *res_b);
 
 int main(void) {
 	HAL_Init();
@@ -26,25 +29,68 @@ int main(void) {
 
 	char print_buf[128];
 	int16_t *data;
-	float complex z;
+	float complex zs[N_SINES];
+	float omegas[N_SINES];
+
+	for (size_t i = 0; i < N_SINES; i++) {
+		omegas[i] = 2*M_PI*80e6/(DAC_CYCLES_PER_UPDATE*SINES[i].len);
+	}
 
 	while(1) {
-		// Toggle PB6 before and after so we can trigger on it with the scope if
-		// needed
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
-		data = do_capture();
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
+		for (size_t i = 0; i < N_SINES; i++) {
+			// Set the output frequency and wait for it to be steady
+			change_sine(&SINES[i]);
+			HAL_Delay(100);
+			// Toggle PB6 before and after so we can trigger on it with the
+			// scope if needed
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
+			data = do_capture();
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
 
-		z = get_inductance(data, ADC_BUF_LEN, &SINES[0]);
-		snprintf(print_buf, sizeof(print_buf), "%f %f\n", creal(z), cimag(z));
+			zs[i] = get_impedance(data, ADC_BUF_LEN, &SINES[i]);
+			snprintf(print_buf, sizeof(print_buf), "%d %f %f\n",
+					i, creal(zs[i]), cimag(zs[i]));
+			HAL_USART_Transmit(&usart_handle, (uint8_t*)print_buf,
+					strlen(print_buf), 1000);
+
+		}
+		float complex l, r;
+		linear_regression(N_SINES, omegas, zs, &l, &r);
+		snprintf(print_buf, sizeof(print_buf), "m=%f+%fi b=%f+%fi\n",
+				creal(l), cimag(l), creal(r), cimag(r));
 		HAL_USART_Transmit(&usart_handle, (uint8_t*)print_buf,
 				strlen(print_buf), 1000);
 
-		HAL_Delay(1000);
 	}
 }
 
-float complex get_inductance(int16_t *data, size_t len, const Sine *sine) {
+// Linear regression takes a list of xs and a list of ys (of size n) and does simple
+// linear regression to determine the best fit line. It returns the slope in res_m and the
+// y intercept in res_b.
+void linear_regression(size_t n, const float *xs, const float complex *ys,
+		float complex *res_m, float complex *res_b) {
+	float complex numerator = 0;
+	float complex denominator = 0;
+	float complex mean_x = 0;
+	float complex mean_y = 0;
+	for (size_t i = 0; i < n; i++) {
+		mean_x += xs[i];
+		mean_y += ys[i];
+	}
+	mean_x /= n;
+	mean_y /= n;
+	for (size_t i = 0; i < n; i++) {
+		numerator += (xs[i]-mean_x)*(ys[i]-mean_y);
+		denominator += (xs[i]-mean_x)*(xs[i]-mean_x);
+	}
+	*res_m = numerator/denominator;
+	*res_b = mean_y-(*res_m) * mean_x;
+}
+
+// get_impedance calculates the impendance of the inductor based on the ADC readings in data.
+// The two ADC channels are interleaved in data. sine is the sine wave at the same frequency
+// we are applying.
+float complex get_impedance(int16_t *data, size_t len, const Sine *sine) {
 	// Compute sum( f(t) * e^(i*omega) ) for the the adc data at the frequency we're
 	// measuring. Use int64_t since we could overflow 32 bits. Convert to float for the
 	// math later, but keep them as ints while adding to preserve precision
@@ -66,9 +112,8 @@ float complex get_inductance(int16_t *data, size_t len, const Sine *sine) {
 	}
 	float complex inductor = i_real + I * i_imag;
 	float complex total = t_real + I * t_imag;
-	float complex impedance = (inductor/total)*1000/(1-(inductor/total));
-	float w = 2.0*M_PI*80e6/(DAC_CYCLES_PER_UPDATE*sine->len);
-	return cimag(impedance/(w)) + I*creal(impedance);
+	float complex impedance = (inductor/total)*RESISTOR_VALUE/(1-(inductor/total));
+	return impedance;
 }
 
 void init_gpio() {
