@@ -2,6 +2,7 @@
 
 #include "sine.h"
 #include "dac.h"
+#include "bit_band.h"
 
 void init_dac(const Sine *sine) {
 	NVIC_EnableIRQ(DMA2_Channel5_IRQn);
@@ -30,4 +31,18 @@ void init_dac(const Sine *sine) {
 	TIM6->ARR = DAC_CYCLES_PER_UPDATE - 1; // update four times every ADC cycle
 	TIM6->CR2 |= TIM_CR2_MMS_1;
 	TIM6->CR1 |= TIM_CR1_CEN;
+}
+
+void change_sine(const Sine *sine) {
+	// pause the timer
+	BB(TIM6->CR1)[TIM_CR1_CEN_Pos] = 0;
+	// turn off dma
+	BB(DMA2_Channel5->CCR)[DMA_CCR_EN_Pos] = 0;
+	// change dma
+	DMA2_Channel5->CMAR = (uint32_t)sine->data;
+	DMA2_Channel5->CNDTR = sine->len;
+	// turn on dma
+	BB(DMA2_Channel5->CCR)[DMA_CCR_EN_Pos] = 1;
+	// resume the timer
+	BB(TIM6->CR1)[TIM_CR1_CEN_Pos] = 1;
 }

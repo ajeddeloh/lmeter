@@ -6,3 +6,4 @@
 #define DAC_CYCLES_PER_UPDATE 15
 
 void init_dac(const Sine *sine);
+void change_sine(const Sine *sine);
