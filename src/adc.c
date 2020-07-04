@@ -3,7 +3,7 @@
 #include "adc.h"
 #include "bit_band.h"
 
-static int16_t data[ADC_BUF_LEN*2];
+static volatile int16_t data[ADC_BUF_LEN*2];
 
 void init_adc() {
 	// Enable Interrupts
@@ -61,10 +61,10 @@ void init_adc() {
 	ADC1->CFGR |= ADC_CFGR_CONT;
 }
 
-int16_t *do_capture() {
+int16_t *do_capture(size_t len_capture) {
 	// flip the DMA on and off again so we can reload the counter
 	BB(DMA1_Channel1->CCR)[DMA_CCR_EN_Pos] = 0;
-	DMA1_Channel1->CNDTR = ADC_BUF_LEN;
+	DMA1_Channel1->CNDTR = len_capture;
 	BB(DMA1_Channel1->CCR)[DMA_CCR_EN_Pos] = 1;
 	ADC1->CR |= ADC_CR_ADSTART;
 	while(DMA1_Channel1->CNDTR != 0);

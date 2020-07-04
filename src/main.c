@@ -38,16 +38,18 @@ int main(void) {
 
 	while(1) {
 		for (size_t i = 0; i < N_SINES; i++) {
+			const Sine *sine = &SINES[i];
 			// Set the output frequency and wait for it to be steady
-			change_sine(&SINES[i]);
+			change_sine(sine);
 			HAL_Delay(100);
 			// Toggle PB6 before and after so we can trigger on it with the
 			// scope if needed
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
-			data = do_capture();
+			// make sure we capture an interger number 
+			data = do_capture(ADC_BUF_LEN/(sine->len) * sine->len);
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
 
-			zs[i] = get_impedance(data, ADC_BUF_LEN, &SINES[i]);
+			zs[i] = get_impedance(data, ADC_BUF_LEN, sine);
 			snprintf(print_buf, sizeof(print_buf), "%d %f %f\n",
 					i, creal(zs[i]), cimag(zs[i]));
 			HAL_USART_Transmit(&usart_handle, (uint8_t*)print_buf,
