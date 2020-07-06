@@ -22,7 +22,7 @@ INC += -Ihal
 
 # Flags
 CFLAGS  = -std=c17 -Wall -Wextra -g3 -gdwarf-2
-CFLAGS += -mcpu=cortex-m4 -mthumb -mlittle-endian -DSTM32L476xx
+CFLAGS += -mcpu=cortex-m4 -mthumb -DSTM32L476xx
 CFLAGS += -T $(LINKER_SCRIPT) --specs=nosys.specs
 
 # CFLAGS for just our sources
