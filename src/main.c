@@ -10,8 +10,8 @@
 #include <string.h>
 #include <complex.h>
 
-#define M_PI 3.14159265358979323846264338327
-#define RESISTOR_VALUE 1000.0
+#define M_PI 3.14159265358979323846264338327f
+#define RESISTOR_VALUE 1000.0f
 
 static void init_gpio();
 static float complex get_impedance(int16_t *data, size_t len, const Sine *sine);
@@ -33,7 +33,7 @@ int main(void) {
 	float omegas[N_SINES];
 
 	for (size_t i = 0; i < N_SINES; i++) {
-		omegas[i] = 2*M_PI*80e6/(DAC_CYCLES_PER_UPDATE*SINES[i].len);
+		omegas[i] = 2.0f*M_PI*80e6f/(DAC_CYCLES_PER_UPDATE*SINES[i].len);
 	}
 
 	while(1) {
