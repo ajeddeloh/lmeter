@@ -61,7 +61,7 @@ void init_adc() {
 	ADC1->CFGR |= ADC_CFGR_CONT;
 }
 
-int16_t *do_capture(size_t len_capture) {
+volatile int16_t *do_capture(size_t len_capture) {
 	// flip the DMA on and off again so we can reload the counter
 	BB(DMA1_Channel1->CCR)[DMA_CCR_EN_Pos] = 0;
 	DMA1_Channel1->CNDTR = len_capture;

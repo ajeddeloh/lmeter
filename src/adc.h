@@ -16,4 +16,4 @@
 
 void init_adc();
 
-int16_t *do_capture();
+volatile int16_t *do_capture();
