@@ -24,6 +24,7 @@ INC += -Ihal
 CFLAGS  = -std=c17 -Wall -Wextra -g3 -gdwarf-2
 CFLAGS += -mcpu=cortex-m4 -mthumb -DSTM32L476xx -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -T $(LINKER_SCRIPT) --specs=nosys.specs
+LFLAGS = -lm
 
 # CFLAGS for just our sources
 EXTRA_CFLAGS = -pedantic
@@ -94,7 +95,7 @@ build/bsp/%.o: $(BSP)/STM32L476G-Discovery/%.c #build/bsp
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
 build/$(NAME).elf: $(OBJS) $(HAL_OBJS) $(BSP_OBJS) $(STARTUP_O) $(SYSTEM_O)
-	$(CC) -o $@ $(CFLAGS) $^
+	$(CC) -o $@ $(CFLAGS) $^ $(LFLAGS)
 
 build/$(NAME).bin: build/$(NAME).elf
 	$(OBJCOPY) -O binary $< $@
