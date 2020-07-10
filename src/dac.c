@@ -33,7 +33,7 @@ void init_dac(const Sine *sine) {
 	TIM6->CR1 |= TIM_CR1_CEN;
 }
 
-void change_sine(const Sine *sine) {
+void dac_change_sine(const Sine *sine) {
 	// pause the timer
 	BB(TIM6->CR1)[TIM_CR1_CEN_Pos] = 0;
 	// turn off dma

@@ -3,10 +3,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define MAX_SINE_LEN 512
+
 typedef struct Sine {
-	const int16_t *data;
+	int16_t data[MAX_SINE_LEN];
 	size_t len;
 } Sine;
 
-extern const Sine SINES[5];
-extern const size_t N_SINES;
+Sine *get_sine(size_t len);

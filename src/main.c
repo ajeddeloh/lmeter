@@ -19,29 +19,35 @@ void linear_regression(size_t n, const float *xs, const float complex *ys, float
 		float complex *res_b);
 
 int main(void) {
+	size_t lens[32];
+	size_t n_lens = sizeof(lens)/sizeof(lens[0]);
+	for (size_t i = 0; i < n_lens; i++) {
+		lens[i] = 512-8*i;
+	}
 	HAL_Init();
 	init_clock();
 	USART_HandleTypeDef usart_handle = {0};
 	init_usart(&usart_handle);
 	init_gpio();
 	init_adc();
-	init_dac(&SINES[0]);
+
+	Sine *sine = get_sine(512);
+	init_dac(sine);
 
 	char print_buf[128];
-	int16_t *data;
-	float complex zs[N_SINES];
-	float omegas[N_SINES];
-
-	for (size_t i = 0; i < N_SINES; i++) {
-		omegas[i] = 2.0f*M_PI*80e6f/(DAC_CYCLES_PER_UPDATE*SINES[i].len);
+	volatile int16_t *data;
+	float complex zs[n_lens];
+	float omegas[n_lens];
+	for (size_t i = 0; i < n_lens; i++) {
+		omegas[i] = 2.0f*M_PI*80e6f/(DAC_CYCLES_PER_UPDATE*lens[i]);
 	}
 
 	while(1) {
-		for (size_t i = 0; i < N_SINES; i++) {
-			const Sine *sine = &SINES[i];
+		for (size_t i = 0; i < n_lens; i++) {
+			const Sine *sine = get_sine(lens[i]);
 			// Set the output frequency and wait for it to be steady
-			change_sine(sine);
-			HAL_Delay(100);
+			dac_change_sine(sine);
+			HAL_Delay(20);
 			// Toggle PB6 before and after so we can trigger on it with the
 			// scope if needed
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
@@ -50,14 +56,10 @@ int main(void) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
 
 			zs[i] = get_impedance(data, ADC_BUF_LEN, sine);
-			snprintf(print_buf, sizeof(print_buf), "%d %f %f\n",
-					i, creal(zs[i]), cimag(zs[i]));
-			HAL_USART_Transmit(&usart_handle, (uint8_t*)print_buf,
-					strlen(print_buf), 1000);
 
 		}
 		float complex l, r;
-		linear_regression(N_SINES, omegas, zs, &l, &r);
+		linear_regression(n_lens, omegas, zs, &l, &r);
 		snprintf(print_buf, sizeof(print_buf), "m=%f+%fi b=%f+%fi\n",
 				creal(l), cimag(l), creal(r), cimag(r));
 		HAL_USART_Transmit(&usart_handle, (uint8_t*)print_buf,

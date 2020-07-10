@@ -1,44 +1,24 @@
+#include <math.h>
+
 #include "sine.h"
 
-const int16_t sine512[] = {
-#include "sine_data/sine512.h"
+#define OFFSET 2048
+#define AMP 1024
+
+#define M_PI 3.14159265358979323846264338327f
+
+static Sine sine = {
+	.data = {0},
+	.len = 0,
 };
 
-const int16_t sine448[] = {
-#include "sine_data/sine448.h"
-};
-
-const int16_t sine384[] = {
-#include "sine_data/sine384.h"
-};
-const int16_t sine320[] = {
-#include "sine_data/sine320.h"
-};
-const int16_t sine256[] = {
-#include "sine_data/sine256.h"
-};
-
-const Sine SINES[] = {
-	{
-		.data = sine512,
-		.len = 512,
-	},
-	{
-		.data = sine448,
-		.len = 448,
-	},
-	{
-		.data = sine384,
-		.len = 384,
-	},
-	{
-		.data = sine320,
-		.len = 320,
-	},
-	{
-		.data = sine256,
-		.len = 256,
-	},
-};
-
-const size_t N_SINES = sizeof(SINES)/sizeof(SINES[0]);
+Sine *get_sine(size_t len) {
+	if (len == sine.len) {
+		return &sine;
+	}
+	for (size_t i = 0; i < len; i++) {
+		sine.data[i] = OFFSET + sinf(2.0*i*M_PI/len)*AMP;
+	}
+	sine.len = len;
+	return &sine;
+}
