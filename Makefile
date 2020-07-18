@@ -1,4 +1,5 @@
 NAME=lmeter
+-include $(DEPS)
 
 # Tools
 PREFIX = arm-none-eabi
@@ -21,7 +22,7 @@ INC += -I$(CMSIS_DEV)/Include
 INC += -Ihal
 
 # Flags
-CFLAGS  = -std=c17 -Wall -Wextra -g3 -gdwarf-2
+CFLAGS  = -std=c17 -Wall -Wextra -g3 -gdwarf-2 -MMD -MP
 CFLAGS += -mcpu=cortex-m4 -mthumb -DSTM32L476xx -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -T $(LINKER_SCRIPT) --specs=nosys.specs
 LFLAGS = -lm
@@ -55,6 +56,7 @@ HAL_OBJS=$(addprefix build/hal/,$(HAL_SRCS:.c=.o))
 BSP_SRCS=
 BSP_OBJS=$(addprefix build/bsp/,$(BSP_SRCS:.c=.o))
 
+DEPS = $(OBJS:.o=.d) $(HAL_OBJS:.o=.d) $(BSP_OBJS:.o=.d) $(SYSTEM_O:.o=.d)
 # Recipes
 
 .PHONY: all
@@ -63,35 +65,31 @@ all: build/$(NAME).bin
 .PHONY: clean
 clean:
 	rm -f $(OBJS) \
-	    $(STARUP_O) \
+	    $(STARTUP_O) \
 	    $(SYSTEM_O) \
 	    $(HAL_OBJS) \
 	    $(BSP_OBS) \
-	    build/meter.elf build/meter.bin
-
-# directories
-build/src:
-	mkdir -p build/src
-build/hal:
-	mkdir -p build/hal
-build/bsp:
-	mkdir -p build/bsp
-build/startup:
-	mkdir -p build/startup
+	    $(DEPS) \
+	    build/$(NAME).elf build/$(NAME).bin
 
 build/src/%.o: src/%.c #build/src
+	mkdir -p $(@D)
 	$(CC) -c $(INC) $(CFLAGS) $(EXTRA_CFLAGS) $< -o $@
 
 $(STARTUP_O): $(STARTUP_S) #build/startup
+	mkdir -p $(@D)
 	$(AS) -c $(INC) $< -o $@
 
 $(SYSTEM_O): $(SYSTEM_C) #build/startup
+	mkdir -p $(@D)
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
 build/hal/%.o: $(HAL)/Src/%.c #build/hal
+	mkdir -p $(@D)
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
 build/bsp/%.o: $(BSP)/STM32L476G-Discovery/%.c #build/bsp
+	mkdir -p $(@D)
 	$(CC) -c $(INC) $(CFLAGS) $< -o $@
 
 build/$(NAME).elf: $(OBJS) $(HAL_OBJS) $(BSP_OBJS) $(STARTUP_O) $(SYSTEM_O)
