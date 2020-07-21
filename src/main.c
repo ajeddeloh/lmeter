@@ -14,7 +14,7 @@
 #define RESISTOR_VALUE 1000.0f
 
 static void init_gpio();
-static float complex get_impedance(volatile int16_t *data, size_t len, const Sine *sine);
+static float complex get_impedance(const volatile int16_t *data, size_t len, const Sine *sine);
 void linear_regression(size_t n, const float *xs, const float complex *ys, float complex *res_m,
 		float complex *res_b);
 
@@ -94,7 +94,7 @@ void linear_regression(size_t n, const float *xs, const float complex *ys,
 // get_impedance calculates the impendance of the inductor based on the ADC readings in data.
 // The two ADC channels are interleaved in data. sine is the sine wave at the same frequency
 // we are applying.
-float complex get_impedance(volatile int16_t *data, size_t len, const Sine *sine) {
+float complex get_impedance(const volatile int16_t *data, size_t len, const Sine *sine) {
 	// Compute sum( f(t) * e^(i*omega) ) for the the adc data at the frequency we're
 	// measuring. Use int64_t since we could overflow 32 bits. Convert to float for the
 	// math later, but keep them as ints while adding to preserve precision
