@@ -5,10 +5,12 @@
 # then run this script to plot it
 import matplotlib.pyplot as plt
 from array import array
+import os
 
 f = open('dump.dat', 'rb')
 d = array('h')
-d.fromfile(f, 65536//2)
+size = os.path.getsize('dump.dat')
+d.fromfile(f, size//2)
 total = d[0::2]
 induc = d[1::2]
 plt.plot(total)

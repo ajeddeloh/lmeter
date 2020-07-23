@@ -45,6 +45,7 @@ int main(void) {
 	while(1) {
 		for (size_t i = 0; i < n_lens; i++) {
 			const Sine *sine = get_sine(lens[i]);
+			size_t capture_len = ADC_BUF_LEN/(sine->len) * sine->len;
 			// Set the output frequency and wait for it to be steady
 			dac_change_sine(sine);
 			HAL_Delay(20);
@@ -52,10 +53,10 @@ int main(void) {
 			// scope if needed
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
 			// make sure we capture an interger number 
-			data = do_capture(ADC_BUF_LEN/(sine->len) * sine->len);
+			data = do_capture(capture_len);
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
 
-			zs[i] = get_impedance(data, ADC_BUF_LEN, sine);
+			zs[i] = get_impedance(data, capture_len, sine);
 
 		}
 		float complex l, r;
