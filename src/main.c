@@ -27,9 +27,7 @@ int main(void) {
 	init_usart(&usart_handle);
 	init_gpio();
 	init_adc();
-
-	Sine *sine = get_sine(512);
-	init_dac(sine);
+	init_dac();
 
 	char print_buf[128];
 	volatile int16_t *data;
