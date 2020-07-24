@@ -61,7 +61,7 @@ int main(void) {
 		}
 		float complex l, r;
 		linear_regression(n_lens, omegas, zs, &l, &r);
-		snprintf(print_buf, sizeof(print_buf), "m=%f+%fi b=%f+%fi\n",
+		snprintf(print_buf, sizeof(print_buf), "m=%e+%ei b=%e+%ei\n",
 				creal(l), cimag(l), creal(r), cimag(r));
 		HAL_USART_Transmit(&usart_handle, (uint8_t*)print_buf,
 				strlen(print_buf), 1000);
@@ -106,10 +106,10 @@ float complex get_impedance(const volatile int16_t *data, size_t len, const Sine
 	int64_t t_real = 0;
 	int64_t t_imag = 0;
 	for (size_t i = 0; i < len; i+=2) {
-		int64_t tot = data[i];
-		int64_t ind = data[i + 1];
-		int64_t sin = sine->data[(i*2) % sine->len] - 2048;
-		int64_t cos = sine->data[(i*2 + sine->len/4) % sine->len] - 2048;
+		int32_t tot = data[i];
+		int32_t ind = data[i + 1];
+		int32_t sin = sine->data_high_res[(i*2) % sine->len];
+		int32_t cos = sine->data_high_res[(i*2 + sine->len/4) % sine->len];
 		i_real += ind*cos;
 		i_imag -= ind*sin;
 		t_real += tot*cos;
