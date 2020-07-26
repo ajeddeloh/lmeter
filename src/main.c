@@ -14,17 +14,17 @@
 #define M_PI 3.14159265358979323846264338327f
 #define N_FREQS 32
 
-static void init_gpio();
+static void gpio_init();
 static void get_inductance(const size_t *lens, const float *omegas, float complex *l, float complex *r);
 
 int main(void) {
 	HAL_Init();
-	init_clock();
+	clock_init();
 	USART_HandleTypeDef usart_handle = {0};
-	init_usart(&usart_handle);
-	init_gpio();
-	init_adc();
-	init_dac();
+	usart_init(&usart_handle);
+	gpio_init();
+	adc_init();
+	dac_init();
 
 	char print_buf[128];
 	size_t lens[N_FREQS];
@@ -56,7 +56,7 @@ static void get_inductance(const size_t *lens, const float *omegas, float comple
 		// Toggle PB6 before and after so we can trigger on it with the scope if needed
 
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
-		volatile int16_t *data = do_capture(capture_len);
+		volatile int16_t *data = adc_capture(capture_len);
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
 
 		zs[i] = get_impedance(data, capture_len, sine);
@@ -64,7 +64,7 @@ static void get_inductance(const size_t *lens, const float *omegas, float comple
 	linear_regression(N_FREQS, omegas, zs, l, r);
 }
 
-static void init_gpio() {
+static void gpio_init() {
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitTypeDef config = {
 		.Mode = GPIO_MODE_OUTPUT_PP,

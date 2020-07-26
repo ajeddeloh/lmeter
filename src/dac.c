@@ -4,7 +4,7 @@
 #include "dac.h"
 #include "bit_band.h"
 
-void init_dac() {
+void dac_init() {
 	NVIC_EnableIRQ(DMA2_Channel5_IRQn);
 
 	// Init the clocks for DAC, GPIOx, DMA2, TIM6

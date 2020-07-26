@@ -14,6 +14,6 @@
 // 20 uS, so 1MS is plenty
 #define ADC_SETUP_TIME_MS 1
 
-void init_adc();
+void adc_init();
 
-volatile int16_t *do_capture();
+volatile int16_t *adc_capture(size_t len);

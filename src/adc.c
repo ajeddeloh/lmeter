@@ -5,7 +5,7 @@
 
 static volatile int16_t data[ADC_BUF_LEN*2];
 
-void init_adc() {
+void adc_init() {
 	// Enable Interrupts
 	NVIC_EnableIRQ(ADC1_2_IRQn);
 	NVIC_EnableIRQ(DMA1_Channel1_IRQn);
@@ -61,7 +61,7 @@ void init_adc() {
 	ADC1->CFGR |= ADC_CFGR_CONT;
 }
 
-volatile int16_t *do_capture(size_t len_capture) {
+volatile int16_t *adc_capture(size_t len_capture) {
 	// flip the DMA on and off again so we can reload the counter
 	BB(DMA1_Channel1->CCR)[DMA_CCR_EN_Pos] = 0;
 	DMA1_Channel1->CNDTR = len_capture;

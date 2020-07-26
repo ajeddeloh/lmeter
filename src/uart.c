@@ -1,7 +1,7 @@
 #include "stm32l4xx_hal.h"
 #include "uart.h"
 
-void init_usart(USART_HandleTypeDef *h) {
+void usart_init(USART_HandleTypeDef *h) {
 	// USART2 is connected to the uart<->usb controller
 	h->Instance = USART2;
 	USART_InitTypeDef config ={

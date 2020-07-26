@@ -1,3 +1,3 @@
 #pragma once
 
-void init_clock();
+void clock_init();

@@ -1,7 +1,7 @@
 #include "stm32l4xx_hal.h"
 #include "clock.h"
 
-void init_clock() {
+void clock_init() {
 	// Set the clock to the HSE clock (8MHz) with a PLL of x10
 	// for a final freq of 80MHz
 	RCC_OscInitTypeDef osc = {
