@@ -22,7 +22,7 @@ INC += -I$(CMSIS_DEV)/Include
 INC += -Ihal
 
 # Flags
-CFLAGS  = -std=c17 -Wall -Wextra -g3 -gdwarf-2 -MMD -MP
+CFLAGS  = -std=c17 -Wall -Wextra -g3 -gdwarf-2 -MMD -MP -O2
 CFLAGS += -mcpu=cortex-m4 -mthumb -DSTM32L476xx -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CFLAGS += -T $(LINKER_SCRIPT) --specs=nosys.specs
 LFLAGS = -lm
