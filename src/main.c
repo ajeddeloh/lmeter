@@ -27,11 +27,13 @@ int main(void) {
 	dac_init();
 
 	char print_buf[128];
-	size_t lens[N_FREQS];
-	float omegas[N_FREQS];
+	size_t lens[N_FREQS*2];
+	float omegas[N_FREQS*2];
 	for (size_t i = 0; i < N_FREQS; i++) {
 		lens[i] = 512-8*i; // [512, 256) in steps of 8
+		lens[N_FREQS*2-1-i] = 512-8*i; // [512, 256) in steps of 8
 		omegas[i] = 2.0f*M_PI*80e6f/(DAC_CYCLES_PER_UPDATE*lens[i]);
+		omegas[N_FREQS*2-1-i] = 2.0f*M_PI*80e6f/(DAC_CYCLES_PER_UPDATE*lens[i]);
 	}
 
 	while(1) {
@@ -45,8 +47,8 @@ int main(void) {
 }
 
 static void get_inductance(const size_t *lens, const float *omegas, float complex *l, float complex *r) {
-	float complex zs[N_FREQS];
-	for (size_t i = 0; i < N_FREQS; i++) {
+	float complex zs[N_FREQS*2];
+	for (size_t i = 0; i < N_FREQS*2; i++) {
 		const Sine *sine = get_sine(lens[i]);
 		// make sure we capture an interger number of waves
 		size_t capture_len = ADC_BUF_LEN/(sine->len) * sine->len;
