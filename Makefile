@@ -104,6 +104,4 @@ gdb: build/$(NAME).elf
 
 .PHONY: flash
 flash: build/$(NAME).elf
-	$(GDB) -ex 'target ext :3333' -ex \
-		'monitor program $(abspath build/$(NAME).elf)' \
-		build/$(NAME).elf
+	$(GDB) -ex 'target ext :3333' -ex 'load' build/$(NAME).elf
