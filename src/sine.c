@@ -8,22 +8,29 @@
 
 #define M_PI 3.14159265358979323846264338327f
 
-static Sine sine = {
-	.data = {0},
-	.sin_high_res = {0},
-	.cos_high_res = {0},
-	.len = 0,
-};
+#define N_WAVES 32
 
-Sine *get_sine(size_t len) {
-	if (len == sine.len) {
-		return &sine;
+static Sine sines[N_WAVES];
+
+static void calc_sine(Sine *sine, size_t len);
+
+void sine_populate(const size_t *lens) {
+	for (int i = 0; i < N_WAVES; i++) {
+		calc_sine(sines + i, lens[i]);
 	}
+}
+
+Sine *get_sine(int idx) {
+	return sines + idx;
+}
+
+static void calc_sine(Sine *sine, size_t len) {
 	for (size_t i = 0; i < len; i++) {
-		sine.data[i] = OFFSET + round(sinf(2.0f*i*M_PI/len)*AMP);
-		sine.sin_high_res[i] = round(sinf(8.0f*i*M_PI/len)*AMP_HIGH_RES);
-		sine.cos_high_res[i] = round(sinf(M_PI/2+8.0f*i*M_PI/len)*AMP_HIGH_RES);
+		sine->data[i] = OFFSET + round(sinf(2.0f*i*M_PI/len)*AMP);
 	}
-	sine.len = len;
-	return &sine;
+	for (size_t i = 0; i < len/4; i++) {
+		sine->sin_high_res[i] = round(sinf(8.0f*i*M_PI/len)*AMP_HIGH_RES);
+		sine->cos_high_res[i] = round(sinf(M_PI/2+8.0f*i*M_PI/len)*AMP_HIGH_RES);
+	}
+	sine->len = len;
 }

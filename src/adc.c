@@ -81,7 +81,7 @@ complex float adc_capture(size_t n_waves, const Sine *current_sine) {
 	tot_real_sum = 0;
 	tot_imag_sum = 0;
 
-	DMA1_Channel1->CNDTR = adc_sine->len;
+	DMA1_Channel1->CNDTR = adc_sine->len/4;
 	BB(DMA1_Channel1->CCR)[DMA_CCR_EN_Pos] = 1;
 	ADC1->CR |= ADC_CR_ADSTART;
 
@@ -106,7 +106,7 @@ void DMA1_Channel1_IRQHandler() {
 		BB(DMA1_Channel1->CCR)[DMA_CCR_EN_Pos] = 0;
 	}
 
-	const size_t len = adc_sine->len;
+	const size_t len = adc_sine->len / 4;
 	size_t offset = 0;
 	if (BB(DMA1->ISR)[DMA_ISR_TCIF1_Pos]) {
 		// Transfer complete means we already processed the first half of the
