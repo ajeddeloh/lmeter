@@ -7,7 +7,8 @@
 
 typedef struct Sine {
 	uint16_t data[MAX_SINE_LEN];
-	int32_t data_high_res[MAX_SINE_LEN];
+	int32_t sin_high_res[MAX_SINE_LEN];
+	int32_t cos_high_res[MAX_SINE_LEN];
 	size_t len;
 } Sine;
 

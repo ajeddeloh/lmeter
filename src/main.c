@@ -13,6 +13,7 @@
 
 #define M_PI 3.14159265358979323846264338327f
 #define N_FREQS 32
+#define N_WAVES_TO_CAPTURE 32
 
 static void gpio_init();
 static void get_inductance(const size_t *lens, const float *omegas, float complex *l, float complex *r);
@@ -27,8 +28,9 @@ int main(void) {
 	dac_init();
 
 	char print_buf[128];
-	size_t lens[N_FREQS*2];
-	float omegas[N_FREQS*2];
+	size_t lens[N_FREQS*2]; // array of lengths of the sines
+	float omegas[N_FREQS*2]; // array of omegas (2*pi*f)
+
 	for (size_t i = 0; i < N_FREQS; i++) {
 		lens[i] = 512-8*i; // [512, 256) in steps of 8
 		lens[N_FREQS*2-1-i] = 512-8*i; // [512, 256) in steps of 8
@@ -50,18 +52,10 @@ static void get_inductance(const size_t *lens, const float *omegas, float comple
 	float complex zs[N_FREQS*2];
 	for (size_t i = 0; i < N_FREQS*2; i++) {
 		const Sine *sine = get_sine(lens[i]);
-		// make sure we capture an interger number of waves
-		size_t capture_len = ADC_BUF_LEN/(sine->len) * sine->len;
-		// Set the output frequency and wait for it to be steady
 		dac_change_sine(sine);
-		HAL_Delay(20); // 20ms is arbitrary, seems to work fine
-		// Toggle PB6 before and after so we can trigger on it with the scope if needed
+		HAL_Delay(3); // 3ms is arbitrary, seems to work fine
 
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
-		volatile int16_t *data = adc_capture(capture_len);
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
-
-		zs[i] = get_impedance(data, capture_len, sine);
+		zs[i] = adc_capture(N_WAVES_TO_CAPTURE, sine);
 	}
 	linear_regression(N_FREQS, omegas, zs, l, r);
 }

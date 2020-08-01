@@ -1,9 +1,8 @@
 #pragma once
 
-// ADCs will be running in master/slave configuration, which means
-// their data will be written together after each conversion. Each
-// set of conversions is 4 bytes, so this should be 64k of data total
-#define ADC_BUF_LEN 16384
+#include <complex.h>
+
+#include "sine.h"
 
 // ADC channels for PA0+PA1 and PA2+PA3 (in diff. mode)
 // Would be good to use any of the PC0-3 pins since they're on fast
@@ -16,4 +15,4 @@
 
 void adc_init();
 
-volatile int16_t *adc_capture(size_t len);
+complex float adc_capture(size_t n_waves, const Sine *sine);
