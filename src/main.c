@@ -11,12 +11,10 @@
 #include <string.h>
 #include <complex.h>
 
-#define M_PI 3.14159265358979323846264338327f
-#define N_FREQS 32
-#define N_WAVES_TO_CAPTURE 256
+#define N_WAVES_TO_CAPTURE 512
 
 static void gpio_init();
-static void get_inductance(const float *omegas, float complex *l, float complex *r);
+static void get_inductance(float complex *l, float complex *r);
 
 int main(void) {
 	HAL_Init();
@@ -26,20 +24,13 @@ int main(void) {
 	gpio_init();
 	adc_init();
 	dac_init();
+	sine_populate();
 
 	char print_buf[128];
-	size_t lens[N_FREQS]; // array of lengths of the sines
-	float omegas[N_FREQS]; // array of omegas (2*pi*f)
-
-	for (size_t i = 0; i < N_FREQS; i++) {
-		lens[i] = 512-8*i; // [512, 256) in steps of 8
-		omegas[i] = 2.0f*M_PI*80e6f/(DAC_CYCLES_PER_UPDATE*lens[i]);
-	}
-	sine_populate(lens);
 
 	while(1) {
 		float complex l, r;
-		get_inductance(omegas, &l, &r);
+		get_inductance(&l, &r);
 		snprintf(print_buf, sizeof(print_buf), "m=%e+%ei b=%e+%ei\n",
 				creal(l), cimag(l), creal(r), cimag(r));
 		HAL_USART_Transmit(&usart_handle, (uint8_t*)print_buf,
@@ -47,23 +38,27 @@ int main(void) {
 	}
 }
 
-static void get_inductance(const float *omegas, float complex *l, float complex *r) {
-	float complex zs[N_FREQS*2];
-	for (size_t i = 0; i < N_FREQS; i++) {
-		const Sine *sine = get_sine(i);
+static void get_inductance(float complex *l, float complex *r) {
+	float complex zs[N_WAVES*2];
+	float omegas[N_WAVES*2];
+	for (int sine_idx = 0; sine_idx < N_WAVES; sine_idx++) {
+		const Sine *sine = get_sine(sine_idx);
 		dac_change_sine(sine);
 		HAL_Delay(3); // 3ms is arbitrary, seems to work fine
 
+		omegas[sine_idx] = sine->omega;
+		zs[sine_idx] = adc_capture(N_WAVES_TO_CAPTURE, sine);
+	}
+	for (int i = N_WAVES; i < N_WAVES*2; i++) {
+		int sine_idx = N_WAVES*2 - 1 - i;
+		const Sine *sine = get_sine(sine_idx);
+		dac_change_sine(sine);
+		HAL_Delay(3); // 3ms is arbitrary, seems to work fine
+
+		omegas[i] = sine->omega;
 		zs[i] = adc_capture(N_WAVES_TO_CAPTURE, sine);
 	}
-	for (int i = N_FREQS-1; i >= 0; i--) {
-		const Sine *sine = get_sine(i);
-		dac_change_sine(sine);
-		HAL_Delay(3); // 3ms is arbitrary, seems to work fine
-
-		zs[i+N_FREQS] = adc_capture(N_WAVES_TO_CAPTURE, sine);
-	}
-	linear_regression(N_FREQS, omegas, zs, l, r);
+	linear_regression(N_WAVES, omegas, zs, l, r);
 }
 
 static void gpio_init() {

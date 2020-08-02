@@ -8,7 +8,8 @@
 
 #define RESISTOR_VALUE 1000.0f
 
-static volatile int16_t data[MAX_SINE_LEN*2];
+// *2 because we have 2 channels, / 4 because the DAC updates 4x per ADC sample
+static volatile int16_t data[MAX_SINE_LEN * 2 / 4];
 static volatile size_t n_half_waves = 0;
 static volatile int64_t ind_real_sum, ind_imag_sum, tot_real_sum, tot_imag_sum;
 static const Sine *adc_sine = NULL;

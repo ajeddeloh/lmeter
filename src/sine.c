@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "sine.h"
+#include "dac.h"
 
 #define OFFSET 2048
 #define AMP 1024
@@ -8,19 +9,17 @@
 
 #define M_PI 3.14159265358979323846264338327f
 
-#define N_WAVES 32
-
 static Sine sines[N_WAVES];
 
 static void calc_sine(Sine *sine, size_t len);
 
-void sine_populate(const size_t *lens) {
+void sine_populate() {
 	for (int i = 0; i < N_WAVES; i++) {
-		calc_sine(sines + i, lens[i]);
+		calc_sine(sines + i, MAX_SINE_LEN - i * SINE_DEC);
 	}
 }
 
-Sine *get_sine(int idx) {
+const Sine *get_sine(int idx) {
 	return sines + idx;
 }
 
@@ -33,4 +32,5 @@ static void calc_sine(Sine *sine, size_t len) {
 		sine->cos_high_res[i] = round(sinf(M_PI/2+8.0f*i*M_PI/len)*AMP_HIGH_RES);
 	}
 	sine->len = len;
+	sine->omega = 2.0f*M_PI*80e6f/(DAC_CYCLES_PER_UPDATE*len);
 }
