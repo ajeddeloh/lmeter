@@ -38,6 +38,7 @@ int main(void) {
 	}
 }
 
+// get_inductance returns the inductance in l and series resistance in r
 static void get_inductance(float complex *l, float complex *r) {
 	float complex zs[N_WAVES*2];
 	float omegas[N_WAVES*2];
@@ -62,6 +63,8 @@ static void get_inductance(float complex *l, float complex *r) {
 }
 
 static void gpio_init() {
+	// this is mostly so we can toggle GPIO pins for triggering on a scope
+	// or timing critical sections
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitTypeDef config = {
 		.Mode = GPIO_MODE_OUTPUT_PP,

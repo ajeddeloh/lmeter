@@ -9,35 +9,38 @@
 static int16_t dac_data[MAX_SINE_LEN];
 
 void dac_init() {
+	// Enable interrupts
 	NVIC_EnableIRQ(DMA2_Channel5_IRQn);
 
-	// Init the clocks for DAC, GPIOx, DMA2, TIM6
+	// Init the clocks for DAC, GPIOA, DMA2, TIM6
 	RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
 	RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
 	RCC->APB1ENR1 |= RCC_APB1ENR1_DAC1EN | RCC_APB1ENR1_TIM6EN;
 	
-	// No GPIO init needed
+	// No GPIO init needed, they're in analog mode after reset
 
 	// Init the DMA, except do not set up the source/len yet and leave it disabled
-	// ADC1, Chan 1 defaults to ADC1
-	DMA2_Channel5->CPAR = (uint32_t)&DAC1->DHR12R2;
+	DMA2_Channel5->CPAR = (uint32_t)&DAC1->DHR12R2; //DAC data register
 	DMA2_Channel5->CMAR = (uint32_t)&dac_data;
-	DMA2_CSELR->CSELR = 3 << DMA_CSELR_C5S_Pos;
+	DMA2_CSELR->CSELR = 3 << DMA_CSELR_C5S_Pos; // Set channel 5 to mode 3 (DAC channel 2)
 	DMA2_Channel5->CCR |= DMA_CCR_PL_0 | DMA_CCR_PL_1 | DMA_CCR_MSIZE_0
 		| DMA_CCR_PSIZE_0 | DMA_CCR_MINC | DMA_CCR_TEIE
 		| DMA_CCR_CIRC | DMA_CCR_DIR;
 	
 	// Init the DAC
-	DAC->CR |= DAC_CR_EN2 | DAC_CR_TEN2 | DAC_CR_DMAEN2;
+	DAC->CR |= DAC_CR_EN2 // channel 2 (connected to gpio PA5)
+		| DAC_CR_TEN2 // with trigger
+		| DAC_CR_DMAEN2; // and DMA
 
 	// Init but do not start the timer
 	TIM6->ARR = DAC_CYCLES_PER_UPDATE - 1; // update four times every ADC cycle
-	TIM6->CR2 |= TIM_CR2_MMS_1;
+	TIM6->CR2 |= TIM_CR2_MMS_1; // create a trigger then the timer is reloaded
 }
 
 void dac_change_sine(const Sine *sine) {
 	// if we haven't started the sine yet just load the data and start
 	if (BB(TIM6->CR1)[TIM_CR1_CEN_Pos] == 0) {
+		// memcpy is faster than DMA (possibly due to bus contention?)
 		memcpy(dac_data, sine->data, sine->len * 2);
 		DMA2_Channel5->CNDTR = sine->len;
 		BB(DMA2_Channel5->CCR)[DMA_CCR_EN_Pos] = 1;
