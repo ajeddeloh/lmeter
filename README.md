@@ -8,23 +8,27 @@ The voltage is measured across the entire circuit as well as the resistor. The c
 ratio of these voltages is then used to calculate the inductance of the inductor.
 
 There are definitely better ways to measure inductance (such as measuring the resonant
-frequency of the inductor and a known capacitor, but I wanted to experiment with doing
+frequency of the inductor and a known capacitor), but I wanted to experiment with doing
 it on a microcontroller using the DAC and ADC.
 
 ### Theory
 
 The inductor and resistor in series act as a voltage divider. The voltage across the inductor
-in the divider is given by
+(Vi) in the divider is given by
 
 `Vi = (Vt*Z) / (R+Z)`
 
-Where Z is the impedance of the inductor and R is the resistance of the resistor. Rearranging,
-we find that:
+Where:
+ - Z is the impedance of the inductor
+ - R is the resistance of the resistor
+ - Vt is the voltage across both in series
+
+Rearranging, we find that:
 
 `Z = R(Vi/Vt)/(1-Vi/Vt)`
 
-Since the impedance of an inductor is `i*2*pi*L`, we can get the inductance from the impedance
-if we know the frequency.
+Since the impedance of an inductor is `i*2*pi*f*L`, we can get the inductance from the
+impedance if we know the frequency.
 
 The DAC generates a sine wave at a known frequency and the ADC measures the voltages over time.
 
@@ -33,7 +37,8 @@ noise would be hard to account for, so instead we use the discrete fourier trans
 the amplitudes at exactly the frequency we applied.
 
 Since we only care about once frequency, we don't need to compute the whole transform; we only
-need to evaluate it at the frequency of the sine wave we applied.
+need to evaluate it at the frequency of the sine wave we applied. This runs in O(1) space and
+O(n) time, meaning we can calculate it on the fly for arbitrarily long captures.
 
 Using Fourier analysis helps reduce noise by filtering out all noise except that at the
 frequency of interest, thus improving SNR.
@@ -41,11 +46,13 @@ frequency of interest, thus improving SNR.
 Normally windowing functions would be needed, since the DFT assumes the data is cyclic.
 However, in our case we can insure this assumption is always true by ensuring we always end
 data collection after an integer number of cycles. Furthermore, the ADC and DAC share the same
-clock, so we don't need to worry about drift between them.
+clock, so we don't need to worry about drift between them. Finally, since we use the ratio of
+the results of two DFTs at the same frequency, if there were any windowing affects it would
+affect both equally and be cancelled out.
 
 ### Op amp selection
 
-The op amps are being used exclusively as buffers and a virtual ground in this project.
+The op amps are used exclusively as buffers and as a virtual ground.
 I made this project with an LM324 op amp because it was the only op amp I had on hand that
 runs on 5V. It is *barely* adequate. It has two very undesirable characteristics:
  - Bad crossover distortion: the schematic shows each output has a resistor to ground to
