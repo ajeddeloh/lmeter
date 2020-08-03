@@ -61,14 +61,16 @@ void adc_init() {
 	ADC1->CR |= ADC_CR_ADCAL | ADC_CR_ADCALDIF;
 	ADC2->CR |= ADC_CR_ADCAL | ADC_CR_ADCALDIF;
 	// poll for calibration to end
-	while ((ADC1->CR | ADC2->CR) & ADC_CR_ADCAL_Msk);
+	while ((ADC1->CR | ADC2->CR) & ADC_CR_ADCAL_Msk) {
+	}
 	
 	// Enable the ADC and wait for it to be ready
 	ADC1->ISR &= ~ADC_ISR_ADRDY_Msk;
 	ADC2->ISR &= ~ADC_ISR_ADRDY_Msk;
 	ADC1->CR |= ADC_CR_ADEN;
 	ADC2->CR |= ADC_CR_ADEN;
-	while (!(ADC1->ISR & ADC2->ISR & ADC_ISR_ADRDY_Msk));
+	while (!(ADC1->ISR & ADC2->ISR & ADC_ISR_ADRDY_Msk)) {
+	}
 	// turn on continous mode, only need to write to ADC1 since we're in dual mode
 	ADC1->CFGR |= ADC_CFGR_CONT;
 }
@@ -89,6 +91,7 @@ complex float adc_capture(size_t n_waves, const Sine *current_sine) {
 	BB(DMA1_Channel1->CCR)[DMA_CCR_EN_Pos] = 1;
 	ADC1->CR |= ADC_CR_ADSTART;
 
+	// n_half_waves is decremented by the DMA ISR
 	while(n_half_waves != 0);
 
         float complex inductor = ind_real_sum + I * ind_imag_sum;

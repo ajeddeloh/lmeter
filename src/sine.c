@@ -32,5 +32,7 @@ static void calc_sine(Sine *sine, size_t len) {
 		sine->cos_high_res[i] = round(sinf(M_PI/2+8.0f*i*M_PI/len)*AMP_HIGH_RES);
 	}
 	sine->len = len;
-	sine->omega = 2.0f*M_PI*80e6f/(DAC_CYCLES_PER_UPDATE*len);
+	// calculate frequency of sine given it's peroid is 'len' dac samples
+	// with an 80MHz clock
+	sine->omega = 2.0f * M_PI * 80e6f / (DAC_CYCLES_PER_UPDATE*len);
 }

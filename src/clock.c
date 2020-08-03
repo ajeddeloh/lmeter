@@ -18,7 +18,8 @@ void clock_init() {
 		},
 	};
 	if (HAL_RCC_OscConfig(&osc) != HAL_OK) {
-		while(1);
+		while(1) {
+		}
 	}
 
 	RCC_ClkInitTypeDef clk = {
@@ -30,6 +31,7 @@ void clock_init() {
 	};
 
 	if (HAL_RCC_ClockConfig(&clk, FLASH_LATENCY_4) != HAL_OK) {
-		while(1);
+		while(1) {
+		}
 	}
 }

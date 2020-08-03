@@ -14,7 +14,8 @@ void usart_init(USART_HandleTypeDef *h) {
 	};
 	h->Init = config;
 	if (HAL_USART_Init(h) != HAL_OK) {
-		while(1);
+		while(1) {
+		}
 	}
 }
 
